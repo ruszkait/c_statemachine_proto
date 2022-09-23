@@ -66,8 +66,11 @@ static struct service_registration* message_broker_find_service_registration(str
     return NULL;
 }
 
-void message_broker_register_service(struct message_broker* self, service_instance instance, service_message_processor processor)
+void message_broker_register_service(struct message_broker* self, service_instance instance, service_message_processor message_processor)
 {
+    panic_if(instance == NULL, "message_broker_register_service: invalid instance");
+    panic_if(message_processor == NULL, "message_broker_register_service: invalid message message_processor");
+
     atomic_start();
 
     struct service_registration* empty_slot = message_broker_find_service_registration(self, NULL);
@@ -76,7 +79,7 @@ void message_broker_register_service(struct message_broker* self, service_instan
     panic_if(no_empty_slot_found, "No free slot found for service");
 
     empty_slot->instance = instance;
-    empty_slot->processor = processor;
+    empty_slot->message_processor = message_processor;
 
     atomic_end();
 }
@@ -88,7 +91,7 @@ void message_broker_push_message(struct message_broker* self, service_instance r
     allocated_message->recipient = recipient;
     allocated_message->type = type;
 
-    panic_if(payload_size > BUFFER_CAPACITY, "Payload is too big for the message");
+    panic_if(payload_size > PAYLOAD_CAPACITY, "Payload is too big for the message");
 
     memcpy(allocated_message->payload, payload, payload_size);
     allocated_message->used_payload = payload_size;
@@ -123,7 +126,7 @@ bool message_broker_dispatch_one(struct message_broker* self)
 
         atomic_end();
 
-        current_slot->processor(current_slot->instance, message->type, message->payload, message->used_payload);
+        current_slot->message_processor(current_slot->instance, message->type, message->payload, message->used_payload);
 
         atomic_start();
     }

@@ -54,7 +54,7 @@ void led_controller_init(struct led_controller* self)
     statemachine_init(&self->statemachine, self, CREATED, transition_rules, enter_exits);
 }
 
-void led_controller_process_signal(service_instance service, message_type type, const int8_t* payload, int payload_size)
+void led_controller_process_message(service_instance service, message_type type, const int8_t* payload, int payload_size)
 {
     struct led_controller* self = (struct led_controller*)service;
     statemachine_process_signal(&self->statemachine, type, payload, payload_size);

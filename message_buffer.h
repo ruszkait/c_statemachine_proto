@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#define BUFFER_CAPACITY 64
+#define PAYLOAD_CAPACITY 64
 
 typedef void *service_instance;
 typedef int message_type;
@@ -13,7 +13,7 @@ struct message_buffer
     message_type type;
     service_instance recipient;
     int used_payload;
-    int8_t payload[BUFFER_CAPACITY];
+    int8_t payload[PAYLOAD_CAPACITY];
 };
 
 #endif

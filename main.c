@@ -15,7 +15,7 @@ int main()
     struct led_controller led_controller;
     led_controller_init(&led_controller);
 
-    message_broker_register_service(&message_broker, &led_controller, led_controller_process_signal);
+    message_broker_register_service(&message_broker, &led_controller, led_controller_process_message);
 
     message_broker_push_message(&message_broker, &led_controller, TURN_LED, NULL, 0);
     message_broker_push_message(&message_broker, &led_controller, TURN_LED, NULL, 0);

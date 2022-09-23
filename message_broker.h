@@ -5,17 +5,20 @@
 
 #include "message_buffer.h"
 
+// Message broker config
+#define MAX_NUM_SERVICES 20
+#define MAX_MESSAGE_QUEUE_LENGTH 64
+
+
 typedef void (*service_message_processor)(service_instance service, message_type type, const int8_t* payload, int payload_size);
 #define BROADCAST (void*)-1
 
-#define MAX_NUM_SERVICES 20
 struct service_registration
 {
     service_instance instance;
-    service_message_processor processor;
+    service_message_processor message_processor;
 };
 
-#define MAX_MESSAGE_QUEUE_LENGTH 64
 struct message_broker
 {
     struct message_buffer message_queue[MAX_MESSAGE_QUEUE_LENGTH];
@@ -30,7 +33,7 @@ bool message_broker_dispatch_one(struct message_broker* self);
 
 void message_broker_push_message(struct message_broker* self, service_instance recipient, message_type type, const int8_t* payload, int payload_size);
 
-void message_broker_register_service(struct message_broker* self, service_instance instance, service_message_processor processor);
+void message_broker_register_service(struct message_broker* self, service_instance instance, service_message_processor message_processor);
 
 #endif
 
