@@ -1,7 +1,7 @@
 #ifndef LED_STATEMACHINE_H
 #define LED_STATEMACHINE_H
 
-#include "queue.h"
+#include "message_broker.h"
 #include "state_machine.h"
 
 struct led_controller
@@ -12,7 +12,7 @@ struct led_controller
 
 void led_controller_init(struct led_controller* self);
 
-void led_controller_process_signal(struct led_controller* self, const struct buffer* message);
+void led_controller_process_signal(service_instance service, message_type type, const int8_t* payload, int payload_size);
 
 #endif
 

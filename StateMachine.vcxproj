@@ -131,17 +131,17 @@
     <ClCompile Include="led_controller.c" />
     <ClCompile Include="messages.c" />
     <ClCompile Include="panic.c" />
-    <ClCompile Include="queue.c" />
+    <ClCompile Include="message_broker.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="state_machine.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="atomic.h" />
-    <ClInclude Include="buffer.h" />
+    <ClInclude Include="message_buffer.h" />
     <ClInclude Include="led_controller.h" />
     <ClInclude Include="messages.h" />
     <ClInclude Include="panic.h" />
-    <ClInclude Include="queue.h" />
+    <ClInclude Include="message_broker.h" />
     <ClInclude Include="state_machine.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

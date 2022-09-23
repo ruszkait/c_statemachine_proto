@@ -1,6 +1,6 @@
 #include "state_machine.h"
 #include "messages.h"
-#include "queue.h"
+#include "message_broker.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -13,10 +13,8 @@ void statemachine_init(struct statemachine* self, void* context, state start_sta
     self->context = context;
 }
 
-static const struct transition_rule* statemachine_find_applying_rule(struct statemachine* self, const struct buffer* message)
+static const struct transition_rule* statemachine_find_applying_rule(struct statemachine* self, message_type type, const int8_t* payload, int payload_size)
 {
-    const enum message_types message_t = message_decode_type(message);
-
     const struct transition_rule* current_rule = self->transition_rules;
     while (true)
     {
@@ -25,7 +23,7 @@ static const struct transition_rule* statemachine_find_applying_rule(struct stat
             break;
 
         const bool state_matched = current_rule->current_state == self->current_state;
-        const bool signal_matched = current_rule->signal == message_t;
+        const bool signal_matched = current_rule->signal == type;
 
         const bool rule_did_not_match = !state_matched || !signal_matched;
         if (rule_did_not_match)
@@ -38,7 +36,7 @@ static const struct transition_rule* statemachine_find_applying_rule(struct stat
         if (rule_has_no_guard)
             return current_rule;
 
-        const bool guard_passed = current_rule->guard(self->context, message);
+        const bool guard_passed = current_rule->guard(self->context, type, payload, payload_size);
         if (guard_passed)
             return current_rule;
     }
@@ -64,32 +62,32 @@ static const struct enter_exit_action_rule* statemachine_find_enter_exit_action_
     return NULL;
 }
 
-void statemachine_process_signal(struct statemachine* self, const struct buffer* message)
+void statemachine_process_signal(struct statemachine* self, message_type type, const int8_t* payload, int payload_size)
 {
     // Find transition rule
-    const struct transition_rule* selected_rule = statemachine_find_applying_rule(self, message);
+    const struct transition_rule* selected_rule = statemachine_find_applying_rule(self, type, payload, payload_size);
     const bool no_applying_rule_found = selected_rule == NULL;
     if (no_applying_rule_found)
         return;
 
     // Exit current state
     const struct enter_exit_action_rule* old_state_enter_exit_action_rule = statemachine_find_enter_exit_action_rule(self, self->current_state);
-    const bool old_state_has_exit_action = old_state_enter_exit_action_rule && old_state_enter_exit_action_rule->exit;
+    const bool old_state_has_exit_action = old_state_enter_exit_action_rule && old_state_enter_exit_action_rule->exit_action;
     if (old_state_has_exit_action)
-        old_state_enter_exit_action_rule->exit(self->context);
+        old_state_enter_exit_action_rule->exit_action(self->context);
 
     // Transition action
     const bool transition_has_action = selected_rule->action != NULL;
     if (transition_has_action)
-        selected_rule->action(self->context, message);
+        selected_rule->action(self->context, type, payload, payload_size);
 
     // State change
     self->current_state = selected_rule->next_state;
 
     // Enter new state
     const struct enter_exit_action_rule* new_state_enter_exit_action_rule = statemachine_find_enter_exit_action_rule(self, self->current_state);
-    const bool new_state_has_enter_action = new_state_enter_exit_action_rule && new_state_enter_exit_action_rule->enter;
+    const bool new_state_has_enter_action = new_state_enter_exit_action_rule && new_state_enter_exit_action_rule->enter_action;
     if (new_state_has_enter_action)
-        new_state_enter_exit_action_rule->enter(self->context);
+        new_state_enter_exit_action_rule->enter_action(self->context);
 }
 

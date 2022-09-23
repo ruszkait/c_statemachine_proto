@@ -18,7 +18,7 @@
     <ClCompile Include="main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="queue.c">
+    <ClCompile Include="message_broker.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="panic.c">
@@ -38,7 +38,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="queue.h">
+    <ClInclude Include="message_broker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="panic.h">
@@ -56,7 +56,7 @@
     <ClInclude Include="state_machine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="buffer.h">
+    <ClInclude Include="message_buffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

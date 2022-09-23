@@ -1,4 +1,4 @@
-#include "queue.h"
+#include "message_broker.h"
 #include "atomic.h"
 #include "messages.h"
 #include "led_controller.h"
@@ -7,31 +7,24 @@
 
 int main()
 {
-    struct queue message_queue;
-    queue_init(&message_queue);
+    struct message_broker message_broker;
+    message_broker_init(&message_broker);
 
-    message_push_init_system(&message_queue);
-    message_push_turn_led(&message_queue);
-    message_push_turn_led(&message_queue);
-    message_push_turn_led(&message_queue);
+    message_broker_push_message(&message_broker, BROADCAST, INIT_SYSTEM, NULL, 0);
 
     struct led_controller led_controller;
     led_controller_init(&led_controller);
 
+    message_broker_register_service(&message_broker, &led_controller, led_controller_process_signal);
+
+    message_broker_push_message(&message_broker, &led_controller, TURN_LED, NULL, 0);
+    message_broker_push_message(&message_broker, &led_controller, TURN_LED, NULL, 0);
+    message_broker_push_message(&message_broker, &led_controller, TURN_LED, NULL, 0);
+
     while(true)
     {
-        const struct buffer* message = queue_peek(&message_queue);
-        const bool no_message = !message;
-        if (no_message)
-        {
+        const bool messages_pending = message_broker_dispatch_one(&message_broker);
+        if (!messages_pending)
             cpu_sleep();
-            continue;
-        }
-
-        led_controller_process_signal(&led_controller, message);
-
-        atomic_start();
-        queue_pop(&message_queue);
-        atomic_end();
     }
 }
