@@ -1,6 +1,6 @@
 #include "message_broker.h"
 #include "atomic.h"
-#include "messages.h"
+#include "led_controller_signals.h"
 #include "led_controller.h"
 
 #include <stdbool.h>
@@ -10,7 +10,7 @@ int main()
     struct message_broker message_broker;
     message_broker_init(&message_broker);
 
-    message_broker_push_message(&message_broker, BROADCAST, INIT_SYSTEM, NULL, 0);
+    //message_broker_push_message(&message_broker, BROADCAST, INIT_SYSTEM, NULL, 0);
 
     struct led_controller led_controller;
     led_controller_init(&led_controller);
@@ -23,7 +23,7 @@ int main()
 
     while(true)
     {
-        const bool messages_pending = message_broker_dispatch_one(&message_broker);
+        const bool messages_pending = message_broker_run_one(&message_broker);
         if (!messages_pending)
             cpu_sleep();
     }

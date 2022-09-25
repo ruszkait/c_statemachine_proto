@@ -1,5 +1,5 @@
 #include "led_controller.h"
-#include "messages.h"
+#include "led_controller_signals.h"
 #include "message_broker.h"
 #include "state_machine.h"
 
@@ -38,10 +38,10 @@ enum led_controller_states
 
 static struct transition_rule transition_rules[] = 
 {
-    {CREATED, INIT_SYSTEM, NULL, led_controller_configure_port, LED_OFF},
+    {CREATED, NO_SIGNAL, NULL, led_controller_configure_port, LED_OFF},
     {LED_OFF, TURN_LED, NULL, led_controller_turn_led_on, LED_ON},
     {LED_ON, TURN_LED, NULL, led_controller_turn_led_off, LED_OFF},
-    {END_GUARD, 0, NULL, NULL, 0},
+    {END_GUARD, 0, NULL, NULL, END_GUARD},
 };
 
 static struct enter_exit_action_rule enter_exits[] = 
@@ -54,9 +54,13 @@ void led_controller_init(struct led_controller* self)
     statemachine_init(&self->statemachine, self, CREATED, transition_rules, enter_exits);
 }
 
-void led_controller_process_message(service_instance service, message_type type, const int8_t* payload, int payload_size)
+void led_controller_process_message(service_instance service, message_type msg_type, const int8_t* msg_payload, int msg_payload_size)
 {
     struct led_controller* self = (struct led_controller*)service;
-    statemachine_process_signal(&self->statemachine, type, payload, payload_size);
+    // Decode message
+    enum led_controller_signals signal = msg_type;
+
+    // Dispatch signal to state machine
+    statemachine_run_till_idle(&self->statemachine, signal, msg_payload, msg_payload_size);
 }
 

@@ -99,7 +99,7 @@ void message_broker_push_message(struct message_broker* self, service_instance r
     atomic_end();
 }
 
-bool message_broker_dispatch_one(struct message_broker* self)
+bool message_broker_run_one(struct message_broker* self)
 {
     atomic_start();
 

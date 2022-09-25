@@ -1,5 +1,4 @@
 #include "state_machine.h"
-#include "messages.h"
 #include "message_broker.h"
 
 #include <stdbool.h>
@@ -11,9 +10,12 @@ void statemachine_init(struct statemachine* self, void* context, state start_sta
     self->transition_rules = rules;
     self->enter_exit_actions = enter_exits;
     self->context = context;
+
+    // If the statemachine needs to be initialized with a triggerless transition
+    statemachine_run_till_idle(self, NO_SIGNAL, NULL, 0);
 }
 
-static const struct transition_rule* statemachine_find_applying_rule(struct statemachine* self, message_type type, const int8_t* payload, int payload_size)
+static const struct transition_rule* statemachine_find_applying_rule(struct statemachine* self, signal type, const int8_t* payload, int payload_size)
 {
     const struct transition_rule* current_rule = self->transition_rules;
     while (true)
@@ -23,8 +25,10 @@ static const struct transition_rule* statemachine_find_applying_rule(struct stat
             break;
 
         const bool state_matched = current_rule->current_state == self->current_state;
-        const bool signal_matched = current_rule->signal == type;
+        const bool signal_matched = current_rule->signal == type || current_rule->signal == NO_SIGNAL;
 
+        // It is a design error if multiple rules match, so we dispatch only the first matching rule,
+        // and ignore if there are other applying rules.
         const bool rule_did_not_match = !state_matched || !signal_matched;
         if (rule_did_not_match)
         {
@@ -62,32 +66,38 @@ static const struct enter_exit_action_rule* statemachine_find_enter_exit_action_
     return NULL;
 }
 
-void statemachine_process_signal(struct statemachine* self, message_type type, const int8_t* payload, int payload_size)
+void statemachine_run_till_idle(struct statemachine* self, signal type, const int8_t* payload, int payload_size)
 {
-    // Find transition rule
-    const struct transition_rule* selected_rule = statemachine_find_applying_rule(self, type, payload, payload_size);
-    const bool no_applying_rule_found = selected_rule == NULL;
-    if (no_applying_rule_found)
-        return;
+    while (true)
+    {
+        // Find transition rule
+        const struct transition_rule* selected_rule = statemachine_find_applying_rule(self, type, payload, payload_size);
+        const bool no_applying_rule_found = selected_rule == NULL;
+        if (no_applying_rule_found)
+            return;
 
-    // Exit current state
-    const struct enter_exit_action_rule* old_state_enter_exit_action_rule = statemachine_find_enter_exit_action_rule(self, self->current_state);
-    const bool old_state_has_exit_action = old_state_enter_exit_action_rule && old_state_enter_exit_action_rule->exit_action;
-    if (old_state_has_exit_action)
-        old_state_enter_exit_action_rule->exit_action(self->context);
+        // Exit current state
+        const struct enter_exit_action_rule* old_state_enter_exit_action_rule = statemachine_find_enter_exit_action_rule(self, self->current_state);
+        const bool old_state_has_exit_action = old_state_enter_exit_action_rule && old_state_enter_exit_action_rule->exit_action;
+        if (old_state_has_exit_action)
+            old_state_enter_exit_action_rule->exit_action(self->context);
 
-    // Transition action
-    const bool transition_has_action = selected_rule->action != NULL;
-    if (transition_has_action)
-        selected_rule->action(self->context, type, payload, payload_size);
+        // Transition action
+        const bool transition_has_action = selected_rule->action != NULL;
+        if (transition_has_action)
+            selected_rule->action(self->context, type, payload, payload_size);
 
-    // State change
-    self->current_state = selected_rule->next_state;
+        // State change
+        self->current_state = selected_rule->next_state;
 
-    // Enter new state
-    const struct enter_exit_action_rule* new_state_enter_exit_action_rule = statemachine_find_enter_exit_action_rule(self, self->current_state);
-    const bool new_state_has_enter_action = new_state_enter_exit_action_rule && new_state_enter_exit_action_rule->enter_action;
-    if (new_state_has_enter_action)
-        new_state_enter_exit_action_rule->enter_action(self->context);
+        // Enter new state
+        const struct enter_exit_action_rule* new_state_enter_exit_action_rule = statemachine_find_enter_exit_action_rule(self, self->current_state);
+        const bool new_state_has_enter_action = new_state_enter_exit_action_rule && new_state_enter_exit_action_rule->enter_action;
+        if (new_state_has_enter_action)
+            new_state_enter_exit_action_rule->enter_action(self->context);
+
+        // Do further rounds with triggerless transitions
+        type = NO_SIGNAL;
+    }
 }
 

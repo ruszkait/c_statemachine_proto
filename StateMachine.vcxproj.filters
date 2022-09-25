@@ -47,7 +47,7 @@
     <ClInclude Include="atomic.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="messages.h">
+    <ClInclude Include="led_controller_signals.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="led_controller.h">

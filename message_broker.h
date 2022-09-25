@@ -29,7 +29,7 @@ struct message_broker
 
 void message_broker_init(struct message_broker* self);
 
-bool message_broker_dispatch_one(struct message_broker* self);
+bool message_broker_run_one(struct message_broker* self);
 
 void message_broker_push_message(struct message_broker* self, service_instance recipient, message_type type, const int8_t* payload, int payload_size);
 

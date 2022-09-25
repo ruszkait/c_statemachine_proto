@@ -1,17 +1,17 @@
 #ifndef STATEMACHINE_H
 #define STATEMACHINE_H
 
-#include "message_buffer.h"
-#include "message_broker.h"
-
 #include <stdbool.h>
+#include <stdint.h>
 
 typedef int state;
+typedef int signal;
 
 #define END_GUARD -1
+#define NO_SIGNAL -2
 
-typedef void (*action)(void* context, message_type type, const int8_t* payload, int payload_size);
-typedef bool (*guard)(void* context, message_type type, const int8_t* payload, int payload_size);
+typedef void (*action)(void* context, signal type, const int8_t* payload, int payload_size);
+typedef bool (*guard)(void* context, signal type, const int8_t* payload, int payload_size);
 
 struct transition_rule
 {
@@ -42,7 +42,7 @@ struct statemachine
 
 void statemachine_init(struct statemachine* self, void* context, state start_state, struct transition_rule* rules, struct enter_exit_action_rule* enter_exits);
 
-void statemachine_process_signal(struct statemachine* self, message_type type, const int8_t* payload, int payload_size);
+void statemachine_run_till_idle(struct statemachine* self, signal type, const int8_t* payload, int payload_size);
 
 #endif
 

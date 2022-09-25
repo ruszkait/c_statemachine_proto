@@ -12,7 +12,7 @@ struct led_controller
 
 void led_controller_init(struct led_controller* self);
 
-void led_controller_process_message(service_instance service, message_type type, const int8_t* payload, int payload_size);
+void led_controller_process_message(service_instance service, message_type msg_type, const int8_t* msg_payload, int msg_payload_size);
 
 #endif
 

@@ -139,7 +139,7 @@
     <ClInclude Include="atomic.h" />
     <ClInclude Include="message_buffer.h" />
     <ClInclude Include="led_controller.h" />
-    <ClInclude Include="messages.h" />
+    <ClInclude Include="led_controller_signals.h" />
     <ClInclude Include="panic.h" />
     <ClInclude Include="message_broker.h" />
     <ClInclude Include="state_machine.h" />

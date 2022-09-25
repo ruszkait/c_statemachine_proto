@@ -1,11 +1,8 @@
-#ifndef MESSAGES_H
-#define MESSAGES_H
+#ifndef LED_CONTROLLER_SIGNALS_H
+#define LED_CONTROLLER_SIGNALS_H
 
-#include <stdbool.h>
-
-enum message_types
+enum led_controller_signals
 {
-    INIT_SYSTEM,
     TURN_LED,
     START_ADC,
     STOP_ADC,
